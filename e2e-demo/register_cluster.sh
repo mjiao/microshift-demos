@@ -58,14 +58,14 @@ spec:
   version: 2.2.0
 EOF
 
-oc new-project "$CLUSTER_NAME" 1>/dev/null
-oc label namespace "$CLUSTER_NAME" cluster.open-cluster-management.io/managedCluster="$CLUSTER_NAME"
-oc apply -f "$WORK_DIR"/managed-cluster.yaml
-oc apply -f "$WORK_DIR"/klusterlet-addon-config.yaml
+kubectl create namespace "$CLUSTER_NAME" 1>/dev/null
+kubectl label namespace "$CLUSTER_NAME" cluster.open-cluster-management.io/managedCluster="$CLUSTER_NAME"
+kubectl apply -f "$WORK_DIR"/managed-cluster.yaml
+kubectl apply -f "$WORK_DIR"/klusterlet-addon-config.yaml
 
 sleep 3
 
-oc get secret "$CLUSTER_NAME"-import -n "$CLUSTER_NAME" -o jsonpath={.data.import\\.yaml} | base64 --decode > "$SPOKE_DIR"/import.yaml
+kubectl get secret "$CLUSTER_NAME"-import -n "$CLUSTER_NAME" -o jsonpath={.data.import\\.yaml} | base64 --decode > "$SPOKE_DIR"/import.yaml
 
 KUBECONFIG=$(yq eval-all '. | select(.metadata.name == "bootstrap-hub-kubeconfig") | .data.kubeconfig' "$SPOKE_DIR"/import.yaml)
 sed -i "s/{{ .clustername }}/${CLUSTER_NAME}/g" ${MANIFESTS_DIR}/klusterlet.yaml
